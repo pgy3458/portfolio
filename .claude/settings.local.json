@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip3 show:*)",
+      "Bash(find ~/Desktop/portfolio -name *.json -o -name credentials* -o -name token*)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\(''''client_email'''',''''''''\\), d.get\\(''''project_id'''',''''''''\\)\\)\")",
+      "Bash(python3:*)",
+      "Bash(GOOGLE_APPLICATION_CREDENTIALS=\"/Users/ppaggiyong/Desktop/auto_project/project-7ff16c93-2c73-41dd-a0a-6e6fa533e088.json\" python3 setup_sheets.py)"
+    ]
+  }
+}

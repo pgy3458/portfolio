@@ -1,0 +1,45 @@
+Code.gs 파일을 아래 사항에 맞게 수정한다. index_2.html은 수정 금지.
+
+[1] doGet 스위치에 다음 action명 추가
+- 'getHistory' → getHistory() 호출
+- 'getAIAnalysis' → getAnalysis() 호출
+
+[2] getPortfolio() 반환 구조를 아래로 변경
+- summary: { totalKrw, totalReturn, totalPnl, returnPositive }
+  (기존 totalKRW→totalKrw, returnRate→totalReturn, pnl→totalPnl, returnPositive는 returnRate>0 여부)
+- chart: { labels, values, counts }
+  (기존 allocation.countryAmtLabels→labels, countryAmtValues→values, countryCountValues→counts)
+- alloc: { risk, safe }
+  (기존 riskSafe.riskPct→risk, safePct→safe)
+- rebalance: []
+  (기존 rebalancing→rebalance)
+- holdings 배열 각 항목: cur, avg, pnl, ret, wgt
+  (기존 currentPrice→cur, avgPrice→avg, pnl 유지, returnRate→ret, weight→wgt)
+- market: { kospi, sp500, nasdaq, nikkei, usd, jpy } 각각 { val, chg, dir } 객체 구조
+  val: 현재가(숫자 포맷), chg: 등락폭 문자열(예: "+12.3"), dir: 'up'|'down'|'flat'
+
+[3] getHistory() 반환 구조를 배열 직접 반환으로 변경
+- 기존 { success, rows: [...] } → [...] 배열만 반환
+- 각 항목 필드명 유지 (id, date, name, ticker, asset, type, qty, price, total, macro, memo, hasError)
+
+[4] getAnalysis() 반환 구조를 아래로 변경
+- quant: { sharpe, sortino, mdd, var, risk }
+  (기존 quantSummary→quant, riskScore→risk)
+- quantDetail 배열 각 항목: { ticker, vol, riskContrib, kelly, weight, judgment }
+  (기존 volatility→vol, kellyPct→kelly, currentPct→weight)
+- behavior: { loss, dispose, confirm } 각각 { level, desc }
+  (기존 behavioral.lossAversion→behavior.loss, dispositionEffect→behavior.dispose, confirmationBias→behavior.confirm)
+- aiComment: { rebalance, alert, macro, timestamp }
+  (기존 aiAnalysis.rebalancing→aiComment.rebalance, warnings→alert, macroComment→macro, lastUpdated→timestamp)
+
+[5] market 실시간 데이터 수집 함수 fetchMarketData() 신규 추가
+- Yahoo Finance API (https://query1.finance.yahoo.com/v8/finance/chart/{symbol}) 를 UrlFetchApp으로 호출
+- 수집 심볼: ^KS11(KOSPI), ^GSPC(S&P500), ^IXIC(NASDAQ), ^N225(Nikkei), USDKRW=X(USD/KRW), JPYKRW=X(JPY/KRW)
+- 각 심볼에서 현재가(regularMarketPrice), 등락폭(regularMarketChange), 등락률(regularMarketChangePercent) 추출
+- val: 현재가 숫자 포맷(KOSPI는 소수점 없음, 환율은 소수점 2자리)
+- chg: 등락률 포맷(예: "+1.23%", "-0.45%")
+- dir: regularMarketChange > 0 → 'up', < 0 → 'down', = 0 → 'flat'
+- 호출 실패 시 해당 심볼 { val:'—', chg:'—', dir:'flat' } 로 폴백 처리
+- getPortfolio() 내 buildMarketData() 대신 fetchMarketData() 호출하도록 교체
+
+수정 후 나머지 코드(writeTrade, saveAIAnalysis, 유틸 함수 등) 일절 변경 금지.
