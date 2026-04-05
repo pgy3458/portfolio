@@ -329,7 +329,7 @@
                placeholder="오늘 삼성전자 10주 8만원에 매수했어"
                style="font-size:17px;" />
         <div style="margin-top:20px;">
-          <button id="step1-btn" class="btn btn--default" style="width:100%;"
+          <button id="trade-btn" class="btn btn--default" style="width:100%;"
                   disabled>AI 해석하기</button>
         </div>
       </div>
@@ -745,7 +745,7 @@
 
   // Gemini API 키
   GEMINI_API_KEY: GEMINI_API_KEY_PRIVATE,
-  GEMINI_MODEL: 'gemini-1.5-flash',
+  GEMINI_MODEL: 'gemini-2.0-flash-lite',
 
   // 리밸런싱 임계값 (±5% 고정)
   REBALANCE_THRESHOLD: 0.05,
@@ -846,7 +846,7 @@ function setStep(n) {
 
 // 입력창 → 버튼 활성
 document.getElementById('trade-input').addEventListener('input', function () {
-  const btn = document.getElementById('step1-btn');
+  const btn = document.getElementById('trade-btn');
   if (this.value.trim().length > 0) {
     btn.className = 'btn btn--active';
     btn.disabled = false;
@@ -869,15 +869,6 @@ function updateConfirmTotal() {
 // Step 3 → Step 4 (저장)
 document.getElementById('step3-btn').addEventListener('click', () => {
   setStep(4);
-});
-
-// 탭 1 진입 시 Step 1로 초기화
-document.querySelector('[data-tab="tab1"]').addEventListener('click', () => {
-  setStep(1);
-  document.getElementById('trade-input').value = '';
-  const btn = document.getElementById('trade-btn');
-  btn.className = 'btn btn--default';
-  btn.disabled = true;
 });
 
 /* =============================================
