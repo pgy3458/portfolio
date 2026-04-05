@@ -22,6 +22,9 @@ index.html 파일 생성 및 점검 완료
 ## 2026-04-04 현재
 Phase 6 불일치 분석 완료 → 수정 시도 후 오류 발생 → 원본 복귀. go/index.html · Code.gs 수정 보류.
 
+## 2026-04-05 Phase 4 완료
+go/app.js NLP 파서 강화: resolveDate(상대날짜→절대), validateParsed(6개 필드), _callGemini 프롬프트 갱신(market/action 추가, KR/US/JP 규칙), _renderConfirmCard market 필드 추가, save() action/market 반영
+
 ## 2026-04-05 완료
 Code.gs (Phase 6) tlfgod 스펙 적용:
 - doGet: 'getHistory' action 추가

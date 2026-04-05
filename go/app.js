@@ -270,20 +270,38 @@ const Tab1 = {
     });
   },
 
+  resolveDate(text) {
+    const today = new Date();
+    const fmt = d => d.toISOString().slice(0, 10);
+    return text
+      .replace(/오늘/g, fmt(today))
+      .replace(/어제/g, fmt(new Date(today - 864e5)))
+      .replace(/(\d+)일\s*전/g, (_, n) => fmt(new Date(today - n * 864e5)));
+  },
+
+  validateParsed(obj) {
+    const required = ['date', 'name', 'market', 'action', 'qty', 'price'];
+    for (const f of required) {
+      if (obj[f] == null || obj[f] === '') throw new Error(`${f} 누락`);
+    }
+  },
+
   async submitInput() {
     const input = document.getElementById('trade-input');
     const text = input?.value.trim();
     if (!text) return;
 
     this.setStep(2);
+    const resolved = this.resolveDate(text);
 
     try {
-      this.parsed = await this._callGemini(text);
+      this.parsed = await this._callGemini(resolved);
+      this.validateParsed(this.parsed);
       this._renderConfirmCard(this.parsed);
       this.setStep(3);
     } catch (err) {
       ErrorLog.add('탭1 > AI 파싱', err.message, 'AI 파싱 오류');
-      this._showParseError();
+      this._showParseError(err.message);
       this.setStep(1);
     }
   },
@@ -291,7 +309,12 @@ const Tab1 = {
   async _callGemini(text) {
     const prompt = `다음 거래 문장을 JSON으로 파싱하세요.
 출력 형식(JSON만):
-{"date":"YYYY-MM-DD","name":"종목명","ticker":"티커","qty":수량,"price":단가,"total":총금액,"type":"매수|매도","asset":"주식|ETF|채권|현금|기타"}
+{"date":"YYYY-MM-DD","name":"종목명","ticker":"티커|UNKNOWN","market":"KR|US|JP","action":"매수|매도","qty":수량,"price":단가,"total":총금액,"asset":"주식|ETF|채권|현금|기타"}
+
+시장 구분 규칙: KR=한국 종목, US=미국 종목, JP=일본 종목
+예시: "Apple 10주 $180에 매수" → market:"US", action:"매수", ticker:"AAPL"
+예시: "삼성전자 5주 70000원에 매도" → market:"KR", action:"매도", ticker:"005930"
+예시: "Toyota 100주 2500엔에 매수" → market:"JP", action:"매수"
 
 입력: "${text}"
 오늘 날짜: ${new Date().toISOString().slice(0, 10)}
@@ -343,10 +366,18 @@ const Tab1 = {
         <input id="cf-total" type="number" value="${parsed.total}">
       </div>
       <div class="confirm-row">
+        <label>시장</label>
+        <select id="cf-market">
+          ${['KR','US','JP'].map(v =>
+            `<option value="${v}" ${parsed.market === v ? 'selected' : ''}>${v}</option>`
+          ).join('')}
+        </select>
+      </div>
+      <div class="confirm-row">
         <label>구분</label>
-        <select id="cf-type">
-          <option value="매수" ${parsed.type === '매수' ? 'selected' : ''}>매수</option>
-          <option value="매도" ${parsed.type === '매도' ? 'selected' : ''}>매도</option>
+        <select id="cf-action">
+          <option value="매수" ${parsed.action === '매수' ? 'selected' : ''}>매수</option>
+          <option value="매도" ${parsed.action === '매도' ? 'selected' : ''}>매도</option>
         </select>
       </div>
       <div class="confirm-row">
@@ -394,7 +425,8 @@ const Tab1 = {
       qty: Number(document.getElementById('cf-qty')?.value),
       price: Number(document.getElementById('cf-price')?.value),
       total: Number(document.getElementById('cf-total')?.value),
-      type: document.getElementById('cf-type')?.value,
+      market: document.getElementById('cf-market')?.value,
+      action: document.getElementById('cf-action')?.value,
       asset: document.getElementById('cf-asset')?.value,
       memo: document.getElementById('cf-memo')?.value || '',
     };
@@ -419,10 +451,12 @@ const Tab1 = {
     this.setStep(1);
   },
 
-  _showParseError() {
+  _showParseError(msg) {
     const el = document.getElementById('tab1-parse-error');
-    if (el) el.style.display = 'block';
-    setTimeout(() => { if (el) el.style.display = 'none'; }, 4000);
+    if (!el) return;
+    if (msg) el.textContent = msg;
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 4000);
   },
 
   _showSaveError() {
