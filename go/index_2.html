@@ -743,7 +743,7 @@
   APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbx7tcosa5JRSqoqt-h22vBZb9v1caf0DXNapGV5R0ULiFV1Lht_4owDV86FbnksddAwiw/exec',
 
   // Gemini API 키
-  GEMINI_API_KEY: 'AIzaSyBZFCmzfURa1Z3804bcSjLCWVNvtUFMEts',
+  GEMINI_API_KEY: 'AIzaSyB1Gvvme8etuEUuXRFyJyUjWrAy9BdmM9w',
   GEMINI_MODEL: 'gemini-1.5-flash',
 
   // 리밸런싱 임계값 (±5% 고정)
@@ -855,16 +855,6 @@ document.getElementById('trade-input').addEventListener('input', function () {
   }
 });
 
-// Step 1 → Step 2 (AI 처리 시뮬레이션)
-document.getElementById('step1-btn').addEventListener('click', () => {
-  setStep(2);
-  setTimeout(() => {
-    // AI 파싱 성공 가정 → Step 3
-    setStep(3);
-    updateConfirmTotal();
-  }, 2000);
-});
-
 // 총금액 자동 계산
 ['c-qty', 'c-price'].forEach(id => {
   document.getElementById(id).addEventListener('input', updateConfirmTotal);
@@ -884,7 +874,7 @@ document.getElementById('step3-btn').addEventListener('click', () => {
 document.querySelector('[data-tab="tab1"]').addEventListener('click', () => {
   setStep(1);
   document.getElementById('trade-input').value = '';
-  const btn = document.getElementById('step1-btn');
+  const btn = document.getElementById('trade-btn');
   btn.className = 'btn btn--default';
   btn.disabled = true;
 });
@@ -901,7 +891,7 @@ async function loadTab2() {
 
     renderCharts(d.chart.labels, d.chart.values, d.chart.counts);
 
-    document.getElementById('total-krw').textContent    = d.summary.totalKrw;
+    document.getElementById('total-krw').textContent    = Number(d.summary.totalKrw).toLocaleString('ko-KR') + '원';
     document.getElementById('total-return').textContent = d.summary.totalReturn;
     document.getElementById('total-pnl').textContent    = d.summary.totalPnl;
     const color = d.summary.returnPositive ? 'var(--color-error)' : 'var(--color-secondary)';
